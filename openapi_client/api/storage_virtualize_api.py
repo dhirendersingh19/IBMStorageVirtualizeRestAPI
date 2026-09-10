@@ -51,7 +51,6 @@ class StorageVirtualizeAPI:
             configuration: Optional custom Configuration object. Use this to control SSL verification
                            (e.g. set verify_ssl=False for self-signed certificates in development,
                            or set ssl_ca_cert="/path/to/ca.crt" for a custom CA in production).
-                           Note: configuration.host is always overwritten with the ip_address argument.
         """
         baseurl = f"https://{ip_address}:7443/rest/v1"
         if configuration is not None:
