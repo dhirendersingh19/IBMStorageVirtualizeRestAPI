@@ -923,17 +923,34 @@ SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
 
 **Solution:**
 
+Pass a custom `Configuration` object via the `configuration` parameter:
+
 ```python
-# For development only - disable SSL verification
+from openapi_client.api.storage_virtualize_api import StorageVirtualizeAPI
 from openapi_client.configuration import Configuration
 
+# ── Development / self-signed certificates ────────────────────────────────
 config = Configuration()
-config.host = "https://10.0.0.1:7443/rest/v1"
-config.verify_ssl = False  # Only for development!
+config.verify_ssl = False  # WARNING: only use this in development!
 
-# For production - provide CA certificate
+svc = StorageVirtualizeAPI(
+    ip_address="10.0.0.1",
+    username_or_token="admin",
+    password="your_password",
+    configuration=config
+)
+
+# ── Production with a custom CA certificate ───────────────────────────────
+config = Configuration()
 config.verify_ssl = True
 config.ssl_ca_cert = "/path/to/ca-bundle.crt"
+
+svc = StorageVirtualizeAPI(
+    ip_address="10.0.0.1",
+    username_or_token="admin",
+    password="your_password",
+    configuration=config
+)
 ```
 
 #### Issue 2: Authentication Failed (401)
@@ -1081,9 +1098,14 @@ Main wrapper class providing access to all API endpoints.
 StorageVirtualizeAPI(
     ip_address: str,
     username_or_token: str,
-    password: Optional[str] = None
+    password: Optional[str] = None,
+    configuration: Optional[Configuration] = None
 )
 ```
+
+> **`configuration`** — Optional custom `Configuration` instance. Use this to control SSL verification
+> (`verify_ssl`), timeouts, CA certificates, and other connection settings. If not provided, a default
+> `Configuration` is created automatically.
 
 #### Properties
 
@@ -1345,8 +1367,14 @@ This guide covers the essential aspects of using the IBM Storage Virtualize REST
 ```python
 # Connect
 from openapi_client.api.storage_virtualize_api import StorageVirtualizeAPI
+from openapi_client.configuration import Configuration
 
 svc = StorageVirtualizeAPI("10.0.0.1", "admin", "password")
+
+# Connect with custom configuration (e.g., disable SSL for self-signed certs)
+config = Configuration()
+config.verify_ssl = False  # development only!
+svc = StorageVirtualizeAPI("10.0.0.1", "admin", "password", configuration=config)
 
 # List resources
 vdisks = svc.svc_info_api.lsvdisk_post()

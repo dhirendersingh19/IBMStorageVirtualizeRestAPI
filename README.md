@@ -25,6 +25,7 @@ pip install .
 ## Detailed usage examples (copy into your application code).  Adjust model types and fields to your generated SDK version. These examples are intentionally verbose to show common patterns.
 ```python
 from openapi_client.api.storage_virtualize_api import StorageVirtualizeAPI
+from openapi_client.configuration import Configuration
 from openapi_client.rest import ApiException
 from pprint import pprint  
 import sys
@@ -42,9 +43,29 @@ try:
         print(f"API error: {ex.reason} (status {ex.status})", file=sys.stderr)
 except ApiException as ex:
     print(f"API error: {ex.reason} (status {ex.status})", file=sys.stderr)
-
-
 ```
+
+### Disabling SSL verification (development / self-signed certificates)
+
+```python
+from openapi_client.api.storage_virtualize_api import StorageVirtualizeAPI
+from openapi_client.configuration import Configuration
+
+# Create a custom configuration and disable SSL (for development only!)
+config = Configuration()
+config.verify_ssl = False
+
+svc = StorageVirtualizeAPI(
+    ip_address="10.0.0.1",
+    username_or_token="admin",
+    password="password",
+    configuration=config  # pass your custom config here
+)
+
+result = svc.svc_info_api.lshost_post()
+print(result)
+```
+
 
 ## Documentation
 
@@ -61,8 +82,8 @@ For detailed documentation, refer https://github.com/IBM/IBMStorageVirtualizeRes
 
 ## Best practices
 
-- Reuse HTTP client and session instead of creating many instances in production. The generated constructors
-   that accept configuration make that possible; this utility currently uses the default client per API.
+- Reuse HTTP client and session instead of creating many instances in production. Pass a `Configuration` object
+   via the `configuration` parameter to share settings across multiple operations.
 - Protect credentials: do not hard-code plaintext passwords in real apps; use secure storage or environment variables.
 - Use context managers (with statements) for API classes when finished to release resources if they support it.
 - Check ApiResponse.status_code / ApiException to inspect error details.

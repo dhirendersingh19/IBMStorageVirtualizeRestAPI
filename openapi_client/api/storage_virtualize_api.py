@@ -48,7 +48,10 @@ class StorageVirtualizeAPI:
             ip_address: The IP address of the server
             username_or_token: Username (if password provided) or access token (if password is None)
             password: Password for authentication (optional, if None then username_or_token is treated as token)
-            configuration: Optional custom Configuration object (e.g., to disable SSL).
+            configuration: Optional custom Configuration object. Use this to control SSL verification
+                           (e.g. set verify_ssl=False for self-signed certificates in development,
+                           or set ssl_ca_cert="/path/to/ca.crt" for a custom CA in production).
+                           Note: configuration.host is always overwritten with the ip_address argument.
         """
         baseurl = f"https://{ip_address}:7443/rest/v1"
         if configuration is not None:
@@ -225,7 +228,35 @@ class StorageVirtualizeAPI:
  token = token_dict.get("token")
  result_using_token = svc.svc_info_api.lsarray_post(x_auth_token=token, lsarray_post_request=None)
  
- -- 6) Best practices and notes
+ -- 6) Custom SSL configuration (development / self-signed certificates)
+ 
+ # For development with self-signed certificates - disable SSL verification:
+ from openapi_client.configuration import Configuration
+
+ custom_config = Configuration()
+ custom_config.verify_ssl = False  # Only for development! Never disable SSL in production.
+
+ svc = StorageVirtualizeAPI(
+     ip_address="10.0.0.1",
+     username_or_token="admin",
+     password="password",
+     configuration=custom_config
+ )
+ lsarray_result = svc.svc_info_api.lsarray_post(x_auth_token=None, lsarray_post_request=None)
+
+ # For production with a custom CA certificate:
+ prod_config = Configuration()
+ prod_config.verify_ssl = True
+ prod_config.ssl_ca_cert = "/path/to/ca-bundle.crt"
+
+ svc = StorageVirtualizeAPI(
+     ip_address="10.0.0.1",
+     username_or_token="admin",
+     password="password",
+     configuration=prod_config
+ )
+ 
+ -- 7) Best practices and notes
  
  - Reuse HTTP client and session instead of creating many instances in production. The generated constructors
    that accept configuration make that possible; this utility currently uses the default client per API.
